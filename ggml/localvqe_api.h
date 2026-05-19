@@ -77,6 +77,23 @@ LOCALVQE_API int localvqe_options_set_device(localvqe_options_t opts,
                                              int device_index);
 
 /**
+ * Override the CPU thread count used by the ggml backend.
+ *
+ * 0 means "auto" (max(1, nproc - 1)) — the same default behaviour you
+ * get when neither this setter nor GGML_NTHREADS is set. Positive
+ * values are passed straight to ggml_backend_set_n_threads. Capped to
+ * 32 to catch obvious mistakes.
+ *
+ * Use when embedded inside a host that already saturates the CPU
+ * (real-time audio plugin, game engine) — letting the backend grab
+ * N-1 cores will starve the host's own threads.
+ *
+ * Returns 0 on success, -1 on a null handle, -2 if n_threads < 0 or > 32.
+ */
+LOCALVQE_API int localvqe_options_set_threads(localvqe_options_t opts,
+                                              int n_threads);
+
+/**
  * Construct a context from a populated options handle. model_path must
  * have been set. Returns an opaque ctx handle, or 0 on failure.
  */

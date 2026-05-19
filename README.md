@@ -186,6 +186,7 @@ PyTorch checkpoint integrity (SHA256):
 ```
 ggml/        C++ streaming inference (GGML graph, CLI, C API, tests)
 pytorch/     PyTorch reference implementation (model definition only)
+obs-plugin/  OBS Studio audio filter wrapping liblocalvqe.so
 ARCHITECTURE.md
 CITATION.cff
 LICENSE
@@ -338,6 +339,66 @@ for experimentation:
 
 Expect end-to-end quality loss until proper per-tensor selection and
 calibration have been worked through.
+
+## OBS Studio Plugin
+
+`obs-plugin/` wraps `liblocalvqe.so` as an OBS Studio audio source
+filter. Once installed it appears as **"LocalVQE (AEC + Noise +
+Dereverb)"** in any audio source's filter list. The bundled v1.2 GGUF
+is preselected on first use, so noise suppression and dereverberation
+work out of the box; AEC additionally requires picking a reference
+source — typically "Desktop Audio" — so the model knows what's
+playing through the speakers.
+
+The flake provides a dedicated dev shell with libobs alongside the
+parent build deps:
+
+```bash
+nix develop .#obs-plugin
+
+# Parent library (shared); the plugin links against it.
+cmake -S ggml -B ggml/build -DCMAKE_BUILD_TYPE=Release -DLOCALVQE_BUILD_SHARED=ON
+cmake --build ggml/build -j$(nproc)
+
+# Stage the bundled GGUF so the plugin's default-model resolver finds it.
+cmake --build ggml/build --target regression-assets
+cp ggml/build/bench_assets/localvqe-v1.2-1.3M-f32.gguf obs-plugin/data/
+
+# Plugin
+cmake -S obs-plugin -B obs-plugin/build -DCMAKE_BUILD_TYPE=Release
+cmake --build obs-plugin/build -j$(nproc)
+cmake --install obs-plugin/build
+```
+
+The install copies the plugin `.so` along with `liblocalvqe.so` and
+every `libggml-cpu-*.so` variant into
+`~/.config/obs-studio/plugins/obs-localvqe/`, so the tree is
+self-contained — no `LD_LIBRARY_PATH`, no system-wide install of
+LocalVQE required. Pass
+`-DOBS_PLUGIN_DESTINATION=/usr/lib/x86_64-linux-gnu/obs-plugins/obs-localvqe`
+to the plugin's configure step for a system-wide install instead.
+
+Restart OBS, right-click any audio source → Filters → Add → **LocalVQE**.
+
+| Property              | Default | Notes                                                                                              |
+|-----------------------|---------|----------------------------------------------------------------------------------------------------|
+| Model (.gguf)         | bundled | Auto-resolved to `data/localvqe-v1.2-1.3M-f32.gguf` if staged; otherwise browse to a path.        |
+| Inference threads     | 4       | Sweet spot on Zen4 (see the benchmark table). Changing this rebuilds the model ctx.               |
+| Residual noise gate   | off     | Mutes hops below an RMS threshold; cleans up quiet model residual during silence.                 |
+| Gate threshold (dBFS) | -45     | Only used when the gate is on. -45 mutes the typical -60 dBFS residual but preserves speech.      |
+| Reference source      | (none)  | For AEC: pick the OBS source feeding your speakers (usually "Desktop Audio"). Off → NS + dereverb only. |
+
+Without a reference, the AEC head sees silence and contributes nothing
+— the filter still runs noise suppression and dereverberation on the
+mic alone. With a reference, the plugin time-aligns it to the mic
+queue via OBS timestamps; the model's AlignBlock then absorbs the
+remaining speaker→mic acoustic delay (up to ~1 s on v1.2).
+
+Tested on Linux. macOS uses the same POSIX `dladdr` path and is
+expected to work unchanged. The Windows path is implemented (via
+`GetModuleHandleEx` + `GetModuleFileName` in `ensure_backends_loaded`)
+but is currently unverified — please open an issue if you hit a
+problem there.
 
 ## PyTorch Reference
 

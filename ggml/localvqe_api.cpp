@@ -62,17 +62,22 @@ struct localvqe_options {
     std::string model_path;
     std::string backend_name = "CPU";
     int device_index = 0;
+    int n_threads = 0;  // 0 = auto / honour GGML_NTHREADS env var
 };
 
 static localvqe_ctx_t make_ctx(const char* model_path,
                                const char* backend_name,
-                               int device_index) {
+                               int device_index,
+                               int n_threads_override = 0) {
     auto* ctx = new (std::nothrow) localvqe_ctx;
     if (!ctx) return 0;
 
-    int n_threads = 0;
-    if (const char* env_threads = std::getenv("GGML_NTHREADS")) {
-        n_threads = std::atoi(env_threads);
+    int n_threads = n_threads_override;
+    if (n_threads == 0) {
+        // Fallback chain: explicit option (above) → env var → auto.
+        if (const char* env_threads = std::getenv("GGML_NTHREADS")) {
+            n_threads = std::atoi(env_threads);
+        }
     }
 
     if (!load_graph_model_ex(model_path, ctx->graph_model,
@@ -138,6 +143,14 @@ LOCALVQE_API int localvqe_options_set_device(localvqe_options_t handle,
     return 0;
 }
 
+LOCALVQE_API int localvqe_options_set_threads(localvqe_options_t handle,
+                                              int n_threads) {
+    if (!handle) return -1;
+    if (n_threads < 0 || n_threads > 32) return -2;
+    reinterpret_cast<localvqe_options*>(handle)->n_threads = n_threads;
+    return 0;
+}
+
 LOCALVQE_API localvqe_ctx_t localvqe_new_with_options(localvqe_options_t handle) {
     if (!handle) return 0;
     auto* opts = reinterpret_cast<localvqe_options*>(handle);
@@ -147,7 +160,8 @@ LOCALVQE_API localvqe_ctx_t localvqe_new_with_options(localvqe_options_t handle)
     }
     return make_ctx(opts->model_path.c_str(),
                     opts->backend_name.c_str(),
-                    opts->device_index);
+                    opts->device_index,
+                    opts->n_threads);
 }
 
 LOCALVQE_API void localvqe_list_devices(void) {

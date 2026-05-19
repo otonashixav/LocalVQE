@@ -22,6 +22,14 @@
 #include <string>
 #include <thread>
 
+#if defined(_WIN32)
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <windows.h>
+#else
+#include <dlfcn.h>
+#endif
+
 // ── Helpers ───────────────────────────────────────────────────────────────
 
 // Allocate a compute context (for graph node metadata, not tensor data).
@@ -498,7 +506,108 @@ static uint32_t gguf_u32(struct gguf_context* ctx, const char* key) {
 
 static void ensure_backends_loaded() {
     static std::once_flag f;
-    std::call_once(f, ggml_backend_load_all);
+    std::call_once(f, []() {
+        ggml_backend_load_all();
+        // ggml's default search looks next to the host executable and in
+        // cwd — wrong when liblocalvqe.so is bundled inside an embedder
+        // (e.g. an OBS plugin tree) where the ggml-cpu-*.so variants
+        // live next to liblocalvqe.so. Self-locate via dladdr (POSIX)
+        // or GetModuleHandleEx (Windows) and also load from that dir;
+        // ggml dedupes by score so the call above isn't wasted. Every
+        // failure path is loud — silent skipping here just produces an
+        // empty registry and a confusing crash later.
+        // Resolve liblocalvqe.so's own path as a UTF-8 std::string `p`,
+        // then split off the parent dir. Symmetric across platforms so
+        // failure messages always quote the actual path (essential for
+        // Windows bug reports — we have no machine to reproduce on).
+        std::string p;
+#if defined(_WIN32)
+        // FROM_ADDRESS lets us pass an in-module function pointer cast
+        // to LPCWSTR; UNCHANGED_REFCOUNT means we don't have to free.
+        HMODULE hmod = nullptr;
+        if (!GetModuleHandleExW(
+                GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+                GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                reinterpret_cast<LPCWSTR>(&ensure_backends_loaded),
+                &hmod)) {
+            DWORD err = GetLastError();
+            fprintf(stderr, "localvqe[win]: GetModuleHandleExW failed "
+                "for self-symbol (GetLastError=%lu); skipping "
+                "embedded-backend self-discovery\n", err);
+            return;
+        }
+        wchar_t wpath[MAX_PATH];
+        DWORD wlen = GetModuleFileNameW(hmod, wpath, MAX_PATH);
+        DWORD wlen_err = GetLastError();  // captured before next call
+        if (wlen == 0 || wlen >= MAX_PATH) {
+            fprintf(stderr, "localvqe[win]: GetModuleFileNameW failed "
+                "or path exceeds MAX_PATH=%d (returned len=%lu, "
+                "GetLastError=%lu); skipping embedded-backend "
+                "self-discovery\n",
+                static_cast<int>(MAX_PATH), wlen, wlen_err);
+            return;
+        }
+        // Convert wide → UTF-8 immediately so all subsequent failure
+        // paths and the success log can quote the actual path.
+        int u8_len = WideCharToMultiByte(CP_UTF8, 0, wpath, -1,
+                                          nullptr, 0, nullptr, nullptr);
+        if (u8_len <= 0) {
+            DWORD err = GetLastError();
+            fprintf(stderr, "localvqe[win]: WideCharToMultiByte sizing "
+                "failed (GetLastError=%lu, wide-len=%lu); skipping "
+                "embedded-backend self-discovery — the module path "
+                "contains a wide character that won't round-trip to "
+                "UTF-8 (vanishingly unlikely on Windows 10+)\n",
+                err, wlen);
+            return;
+        }
+        p.resize(static_cast<size_t>(u8_len - 1));  // excl. trailing NUL
+        if (WideCharToMultiByte(CP_UTF8, 0, wpath, -1, p.data(), u8_len,
+                                nullptr, nullptr) == 0) {
+            DWORD err = GetLastError();
+            fprintf(stderr, "localvqe[win]: WideCharToMultiByte "
+                "conversion failed (GetLastError=%lu, expected %d "
+                "bytes); skipping embedded-backend self-discovery\n",
+                err, u8_len);
+            return;
+        }
+        // Windows accepts both separators in paths; the last one wins.
+        const size_t slash = p.find_last_of("\\/");
+#else
+        Dl_info info{};
+        if (dladdr((void*)&ensure_backends_loaded, &info) == 0) {
+            fprintf(stderr, "localvqe: dladdr failed for self-symbol; "
+                "skipping embedded-backend self-discovery\n");
+            return;
+        }
+        if (!info.dli_fname) {
+            fprintf(stderr, "localvqe: dladdr returned NULL dli_fname; "
+                "skipping embedded-backend self-discovery\n");
+            return;
+        }
+        p = info.dli_fname;
+        const size_t slash = p.find_last_of('/');
+#endif
+        if (slash == std::string::npos) {
+            fprintf(stderr, "localvqe: module path '%s' has no path "
+                "separator; skipping embedded-backend self-discovery\n",
+                p.c_str());
+            return;
+        }
+        if (slash == 0) {
+            fprintf(stderr, "localvqe: module path '%s' has no parent "
+                "directory; skipping embedded-backend self-discovery\n",
+                p.c_str());
+            return;
+        }
+        const std::string dir = p.substr(0, slash);
+        // Loud success line: if ggml later reports "Registered backends
+        // (0)", the user can see exactly what directory we scanned, and
+        // ggml itself prints which .so files it tried to load.
+        fprintf(stderr, "localvqe: loading embedded backends from '%s' "
+            "(self-resolved from '%s')\n", dir.c_str(), p.c_str());
+        ggml_backend_load_all_from_path(dir.c_str());
+    });
 }
 
 void dvqe_list_devices(FILE* out) {
