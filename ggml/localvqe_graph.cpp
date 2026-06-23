@@ -555,6 +555,11 @@ static uint32_t gguf_u32(struct gguf_context* ctx, const char* key) {
 void ensure_backends_loaded() {
     static std::once_flag f;
     std::call_once(f, []() {
+#ifdef __EMSCRIPTEN__
+        // WASM: single static CPU backend, no runtime .so discovery. The
+        // dladdr / load-from-path dance below only emits noise here.
+        return;
+#endif
         ggml_backend_load_all();
         // ggml's default search looks next to the host executable and in
         // cwd — wrong when liblocalvqe.so is bundled inside an embedder

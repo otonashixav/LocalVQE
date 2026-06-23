@@ -2,6 +2,15 @@
 ggml/build/
 ggml/build-*/
 
+# Emscripten / WASM
+.em-cache/
+a.out.js
+a.out.wasm
+a.out.wat
+web/vendor/localvqe.js
+web/vendor/localvqe.wasm
+web/browser_test.png
+
 # Python
 __pycache__/
 *.pyc

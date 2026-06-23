@@ -37,6 +37,27 @@
           ];
         };
 
+        # WASM shell: Emscripten toolchain for the in-browser demo. Use with
+        #   nix develop .#wasm
+        # then run web/build-wasm.sh (emcmake cmake + emmake). Emscripten's
+        # Nix package ships a read-only cache; EM_CACHE must point at a
+        # writable copy or the first sysroot/port build fails.
+        wasm = pkgs.mkShell {
+          packages = [
+            pkgs.cmake
+            pkgs.emscripten
+            pkgs.python3
+          ];
+          shellHook = ''
+            export EM_CACHE="''${EM_CACHE:-$PWD/.em-cache}"
+            if [ ! -d "$EM_CACHE" ]; then
+              mkdir -p "$EM_CACHE"
+              cp -r ${pkgs.emscripten}/share/emscripten/cache/. "$EM_CACHE/" 2>/dev/null || true
+              chmod -R u+w "$EM_CACHE"
+            fi
+          '';
+        };
+
         # OBS plugin shell: libobs headers + CMake config alongside the
         # parent project's build deps (the plugin links libvqe.so, so you
         # typically build both in the same tree). Use with

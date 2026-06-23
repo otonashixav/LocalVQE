@@ -1,0 +1,65 @@
+name: Deploy demo to GitHub Pages
+
+# Builds the WebAssembly module (the gitignored web/vendor/* artifacts) with
+# Emscripten and publishes the web/ demo to GitHub Pages.
+#
+# One-time setup: repo Settings → Pages → Build and deployment → Source:
+# "GitHub Actions". Site URL: https://localai-org.github.io/LocalVQE/
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'web/**'
+      - 'ggml/**'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One concurrent deploy; let an in-progress run finish (don't cancel a deploy).
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive   # ggml/vendor/ggml
+
+      - name: Set up Emscripten
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: 4.0.23
+          actions-cache-folder: emsdk-cache
+
+      - name: Build WASM module
+        run: bash web/build-wasm.sh
+
+      - name: Stage site
+        run: |
+          mkdir -p _site/vendor
+          cp web/index.html web/style.css web/app.js web/worker.js _site/
+          cp web/vendor/localvqe.js web/vendor/localvqe.wasm _site/vendor/
+          touch _site/.nojekyll   # serve vendor/ and dotfiles verbatim
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

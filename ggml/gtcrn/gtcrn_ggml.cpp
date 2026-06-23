@@ -40,7 +40,12 @@ bool GtcrnGraph::load(const char* path, int n_threads, bool verbose) {
     GtcrnModel host;
     if (!host.load(path, false)) return false;
 
+    // Under Emscripten the CPU backend is statically registered and there
+    // are no .so variants to dlopen — skip the load to avoid noisy
+    // "search path does not exist" diagnostics.
+#ifndef __EMSCRIPTEN__
     ggml_backend_load_all();
+#endif
     ggml_backend_reg_t reg = ggml_backend_reg_by_name("CPU");
     if (!reg) { fprintf(stderr, "gtcrn: CPU backend not registered\n"); return false; }
     ggml_backend_dev_t dev = ggml_backend_reg_dev_get(reg, 0);

@@ -25,7 +25,29 @@ endif()
 set(GGML_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GGML_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
-if(LOCALVQE_CUDA)
+if(EMSCRIPTEN)
+    # WebAssembly (in-browser demo). Single self-contained module: the CPU
+    # backend is statically registered (no runtime .so dlopen), SIMD128 is
+    # enabled by ggml's own EMSCRIPTEN block, and there are no per-ISA
+    # variants to pick from. Force CMAKE_SYSTEM_PROCESSOR to "wasm" so ggml's
+    # CPU dispatch takes its wasm arch path (arch/wasm/quants.c) instead of
+    # falling through to the generic scalar fallback.
+    set(CMAKE_SYSTEM_PROCESSOR "wasm")
+    set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+    set(GGML_BACKEND_DL OFF CACHE BOOL "" FORCE)
+    set(GGML_CPU_ALL_VARIANTS OFF CACHE BOOL "" FORCE)
+    set(GGML_NATIVE OFF CACHE BOOL "" FORCE)
+    set(GGML_STATIC ON CACHE BOOL "" FORCE)
+    set(GGML_OPENMP OFF CACHE BOOL "" FORCE)
+    # We produce our own localvqe.js/.wasm with explicit link flags below;
+    # keep ggml's own outputs as plain .wasm (not embedded in JS).
+    set(GGML_WASM_SINGLE_FILE OFF CACHE BOOL "" FORCE)
+    # SIMD128 + optimisation for the whole tree (ggml only auto-enables
+    # -msimd128 for its own CPU backend; our DAF front-end / orchestration
+    # benefit from it too). Applies to vendor/ggml and our libs since this
+    # precedes add_subdirectory below.
+    add_compile_options(-msimd128 -O3)
+elseif(LOCALVQE_CUDA)
     set(GGML_CUDA ON CACHE BOOL "" FORCE)
     set(GGML_STATIC OFF CACHE BOOL "" FORCE)
 elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|AMD64|amd64")
@@ -121,6 +143,32 @@ if(LOCALVQE_BUILD_SHARED)
 
     install(TARGETS localvqe_shared LIBRARY DESTINATION lib)
     install(FILES localvqe_api.h DESTINATION include)
+endif()
+
+# WebAssembly module for the in-browser demo (web/). Reactor-style: no main
+# (`--no-entry`), the C API is exposed via EXPORTED_FUNCTIONS and driven from
+# JS with ccall/cwrap + heap views. dvqe_graph pulls in the GTCRN backend and
+# DAF front-end transitively, so every released model (v1.2/v1.3/GTCRN) runs.
+# Build via web/build-wasm.sh inside `nix develop .#wasm`.
+if(EMSCRIPTEN)
+    add_executable(localvqe_wasm localvqe_api.cpp)
+    target_link_libraries(localvqe_wasm PRIVATE dvqe_graph)
+    target_compile_definitions(localvqe_wasm PRIVATE LOCALVQE_BUILD)
+    set_target_properties(localvqe_wasm PROPERTIES OUTPUT_NAME "localvqe")
+    target_link_options(localvqe_wasm PRIVATE
+        "--no-entry"
+        "-O3"
+        "-sMODULARIZE=1"
+        "-sEXPORT_NAME=createLocalVQEModule"
+        "-sENVIRONMENT=web,worker,node"
+        "-sALLOW_MEMORY_GROWTH=1"
+        "-sINITIAL_MEMORY=64MB"
+        "-sMAXIMUM_MEMORY=1024MB"
+        "-sSTACK_SIZE=5MB"
+        "-sFORCE_FILESYSTEM=1"
+        "-sEXPORTED_RUNTIME_METHODS=ccall,cwrap,FS,HEAPF32,HEAP16,HEAPU8,stringToUTF8,lengthBytesUTF8,UTF8ToString"
+        "-sEXPORTED_FUNCTIONS=_localvqe_new,_localvqe_new_with_frontend,_localvqe_options_new,_localvqe_options_free,_localvqe_options_set_model_path,_localvqe_options_set_backend,_localvqe_options_set_device,_localvqe_options_set_frontend_path,_localvqe_options_set_threads,_localvqe_new_with_options,_localvqe_free,_localvqe_process_f32,_localvqe_process_s16,_localvqe_process_frame_f32,_localvqe_process_frame_s16,_localvqe_reset,_localvqe_last_error,_localvqe_sample_rate,_localvqe_hop_length,_localvqe_fft_size,_localvqe_set_noise_gate,_localvqe_get_noise_gate,_malloc,_free"
+    )
 endif()
 
 # Per-block test binaries (self-contained, dvqe_common only)

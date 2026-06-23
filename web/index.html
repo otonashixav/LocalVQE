@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LocalVQE — in-browser voice enhancement</title>
+<meta name="description" content="Run LocalVQE speech-enhancement models (AEC / noise suppression / dereverb) entirely in your browser via WebAssembly.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+  <header>
+    <h1>LocalVQE <span class="sub">in the browser</span></h1>
+    <p class="tagline">
+      Compact neural speech enhancement — acoustic echo cancellation, noise
+      suppression and dereverb — running entirely on your machine via
+      WebAssembly. No audio leaves the page.
+    </p>
+  </header>
+
+  <section class="panel">
+    <h2>1 · Model</h2>
+    <div class="row">
+      <select id="model" aria-label="Model"></select>
+      <span id="model-note" class="note"></span>
+    </div>
+    <div id="dl" class="progress hidden"><div id="dl-bar"></div><span id="dl-label"></span></div>
+  </section>
+
+  <section class="panel">
+    <h2>2 · Audio</h2>
+    <p class="note">
+      Every model takes a <b>microphone</b> signal plus a far-end
+      <b>reference</b> (a loopback of what the speakers played) to cancel echo.
+      Pick the built-in doubletalk clip, or bring your own — the reference is
+      optional (leave it empty for noise-suppression / dereverb only).
+    </p>
+    <div class="row">
+      <label><input type="radio" name="src" value="example" checked> Example clip</label>
+      <label><input type="radio" name="src" value="upload"> Your own files</label>
+    </div>
+
+    <div id="src-example" class="src-block">
+      <select id="example" aria-label="Example clip"></select>
+    </div>
+
+    <div id="src-upload" class="src-block hidden">
+      <label class="file">Mic (required)
+        <input type="file" id="mic-file" accept="audio/*">
+      </label>
+      <label class="file">Reference (optional)
+        <input type="file" id="ref-file" accept="audio/*">
+      </label>
+    </div>
+  </section>
+
+  <section class="panel">
+    <button id="run" disabled>Enhance</button>
+    <span id="status" class="status"></span>
+  </section>
+
+  <section id="results" class="panel hidden">
+    <h2>3 · Result</h2>
+
+    <div class="ab">
+      <div class="ab-toggle" role="group" aria-label="Compare">
+        <button id="ab-raw" class="active">Raw mic</button>
+        <button id="ab-enh">Enhanced</button>
+      </div>
+      <audio id="player" controls preload="auto"></audio>
+      <a id="download" class="dl-link" download="localvqe-enhanced.wav">Download enhanced WAV</a>
+    </div>
+
+    <div class="spectro">
+      <figure>
+        <figcaption>Raw mic</figcaption>
+        <canvas id="spec-raw" width="640" height="256"></canvas>
+      </figure>
+      <figure>
+        <figcaption>Enhanced</figcaption>
+        <canvas id="spec-enh" width="640" height="256"></canvas>
+      </figure>
+    </div>
+
+    <p id="perf" class="note"></p>
+  </section>
+
+  <footer>
+    <p>
+      <a href="https://huggingface.co/LocalAI-io/LocalVQE">weights</a> ·
+      <a href="https://huggingface.co/spaces/LocalAI-io/LocalVQE-demo">hosted demo</a> ·
+      <a href="https://arxiv.org/abs/2306.03177">DeepVQE paper</a>
+    </p>
+    <p class="fine">
+      F32 GGML inference compiled to WebAssembly (SIMD128, single-threaded).
+      Models are fetched from Hugging Face and cached locally on first use.
+    </p>
+  </footer>
+</main>
+
+<script src="app.js" type="module"></script>
+</body>
+</html>
