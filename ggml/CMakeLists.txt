@@ -81,6 +81,42 @@ if(LOCALVQE_VULKAN)
     # at runtime, falling back to the CPU variants when no Vulkan ICD is found.
     set(GGML_VULKAN ON CACHE BOOL "" FORCE)
 endif()
+
+#
+# Custom ggml op: GGML_OP_GRU / ggml_gru — a fused GRU-scan the GTCRN backend
+# (gtcrn/gtcrn_ggml.cpp) depends on. It is not in upstream ggml, so it lives as
+# a tracked patch (patches/ggml-gru.patch) against the pinned submodule commit
+# and is applied to the submodule working tree here, at configure time, so a
+# clean `git clone --recursive` + build just works (every target that links
+# dvqe_graph needs it). Idempotent: if the op is already present — a maintainer's
+# already-patched tree, or a reconfigure — this is a no-op and git is not needed.
+#
+set(_gru_patch ${CMAKE_CURRENT_SOURCE_DIR}/patches/ggml-gru.patch)
+set(_ggml_header ${CMAKE_CURRENT_SOURCE_DIR}/vendor/ggml/include/ggml.h)
+if(NOT EXISTS ${_ggml_header})
+    message(FATAL_ERROR
+        "vendored ggml not found at ${_ggml_header} — run "
+        "`git submodule update --init --recursive`")
+endif()
+file(STRINGS ${_ggml_header} _has_gru REGEX "ggml_gru")
+if(_has_gru)
+    message(STATUS "ggml_gru: already present in vendored ggml — not patching")
+elseif(EXISTS ${_gru_patch})
+    find_package(Git REQUIRED)
+    message(STATUS "ggml_gru: applying ${_gru_patch}")
+    execute_process(
+        COMMAND ${GIT_EXECUTABLE} apply --whitespace=nowarn ${_gru_patch}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/vendor/ggml
+        RESULT_VARIABLE _gru_rc
+        ERROR_VARIABLE _gru_err)
+    if(NOT _gru_rc EQUAL 0)
+        message(FATAL_ERROR "ggml_gru: failed to apply patch:\n${_gru_err}")
+    endif()
+else()
+    message(FATAL_ERROR
+        "vendored ggml lacks ggml_gru and ${_gru_patch} is missing")
+endif()
+
 add_subdirectory(vendor/ggml)
 
 #
