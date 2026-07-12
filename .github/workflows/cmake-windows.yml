@@ -91,10 +91,6 @@ jobs:
         
     - name: Copy bench asset
       run: cp ${{ steps.strings.outputs.bench-assets-dir }}/localvqe-v1.3-4.8M-f32.gguf ${{ steps.strings.outputs.source-dir }}/data/localvqe-v1.3-4.8M-f32.gguf
-      
-    - name: Build ggml
-      # Build your program with the given configuration. Note that --config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
-      run: cmake --build ${{ steps.strings.outputs.ggml-build-output-dir }} --config ${{ matrix.build_type }}
 
     - name: Configure obs-plugin
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
