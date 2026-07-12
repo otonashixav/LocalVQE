@@ -1,6 +1,6 @@
 # This starter workflow is for a CMake project running on multiple platforms. There is a different starter workflow if you just want a single platform.
 # See: https://github.com/actions/starter-workflows/blob/main/ci/cmake-single-platform.yml
-name: CMake on multiple platforms
+name: CMake assets
 
 on:
   push:
@@ -60,6 +60,7 @@ jobs:
     - name: Build ggml
       # Build your program with the given configuration. Note that --config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
       run: cmake --build ${{ steps.strings.outputs.ggml-build-output-dir }} --config ${{ matrix.build_type }}
+    - run: cmake --build ${{ steps.strings.outputs.ggml-build-output-dir }} --config ${{ matrix.build_type }} --target regression-assets
 
     - name: Upload build
       uses: actions/upload-artifact@master
