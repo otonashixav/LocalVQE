@@ -1,0 +1,63 @@
+# This starter workflow is for a CMake project running on multiple platforms. There is a different starter workflow if you just want a single platform.
+# See: https://github.com/actions/starter-workflows/blob/main/ci/cmake-single-platform.yml
+name: Build Windows
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-assets:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        submodules: recursive
+    - name: Build assets
+      run: |
+        cmake -S ggml -B ggml/build -DCMAKE_BUILD_TYPE=Release -DLOCALVQE_BUILD_SHARED=ON
+        cmake --build ggml/build
+        cmake --build ggml/build --target regression-assets
+    - name: Upload assets
+      uses: actions/upload-artifact@v7
+      with:
+        name: bench_assets
+        path: ggml/build/bench_assets
+
+  build-plugin:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        submodules: recursive
+    - name: Checkout obs
+      uses: actions/checkout@v7
+      with:
+        submodules: recursive
+        repository: obsproject/obs-studio
+        path: obs-studio
+    - name: Download bench assets
+      uses: actions/download-artifact@v8
+      with:
+        name: bench_assets
+        path: bench_assets
+    - name: Copy bench asset
+      run: cp bench_asset/localvqe-v1.3-4.8M-f32.gguf obs-plugin/data/localvqe-v1.3-4.8M-f32.gguf
+    - name: Build obs
+      run: |
+        cmake -S obs-studio -B obs-studio/build -DCMAKE_BUILD_TYPE=Release -DENABLE_PLUGINS:BOOL=OFF -DENABLE_FRONTEND:BOOL=OFF
+        cmake --build obs-studio/build
+    - name: Build plugin
+      run: |
+        cmake -S obs-plugin -B obs-plugin/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=obs-studio/build/libobs
+        cmake --build obs-plugin/build
+    - name: Upload plugin
+      uses: actions/upload-artifact@v7
+      with:
+        name: obs-plugin
+        path: obs-plugin/build
+
+    
+    
