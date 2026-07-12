@@ -28,11 +28,11 @@ jobs:
         c_compiler: [gcc]
         include:
           - os: windows-latest
-            c_compiler: gcc
-            cpp_compiler: g++
+            c_compiler: clang
+            cpp_compiler: clang++
           - os: ubuntu-latest
-            c_compiler: gcc
-            cpp_compiler: g++
+            c_compiler: clang
+            cpp_compiler: clang++
         # c_compiler: [gcc, clang, cl]
         # include:
         #   - os: windows-latest
@@ -70,7 +70,7 @@ jobs:
     - name: Configure ggml
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-      run: mv ${{ steps.strings.outputs.ggml-source-dir }}/tests ${{ steps.strings.outputs.ggml-source-dir }}/.tests
+      run: mv ${{ steps.strings.outputs.ggml-source-dir }}/tests/test_fuzz_repros.cpp ${{ steps.strings.outputs.ggml-source-dir }}/tests/test_fuzz_repros.cpp.bak
     - run: >
         cmake -B ${{ steps.strings.outputs.ggml-build-output-dir }}
         -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
