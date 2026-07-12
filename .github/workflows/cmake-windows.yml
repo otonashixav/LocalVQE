@@ -81,7 +81,7 @@ jobs:
         repository: obsproject/obs-studio
         extract: true
         latest: true
-        filename: *Windows-x64.zip
+        filename: "*Windows-x64.zip"
         extract-path: obs-studio
 
     - name: Set reusable strings
