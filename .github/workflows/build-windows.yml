@@ -26,8 +26,7 @@ jobs:
     - name: Build obs
       run: |
         cd obs-studio
-        cmake --list-presets
-        cmake --preset windows-ci-x64
+        cmake --preset windows-x64
         cmake --build --preset windows-x64
         cd ..
     - name: Build assets
