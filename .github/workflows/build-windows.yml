@@ -30,13 +30,8 @@ jobs:
         cmake --build ggml/build --target regression-assets
     - name: Copy bench asset
       run: cp ggml/build/bench_assets/localvqe-v1.3-4.8M-f32.gguf obs-plugin/data/localvqe-v1.3-4.8M-f32.gguf
-    - name: Build obs
-      run: |
-        cd obs-studio
-        cmake --list-presets
-        cmake --preset windows-x64
-        cmake --build --preset windows-x64
-        cd ..
+    - name: Get pkgconfig
+      run: choco install pkgconfiglite 
     - name: Build plugin
       run: |
         cmake -S obs-plugin -B obs-plugin/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="obs-studio/build_x64/libobs"
