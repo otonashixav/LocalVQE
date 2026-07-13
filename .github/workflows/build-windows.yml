@@ -11,24 +11,6 @@ on:
 
 jobs:
   build-assets:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v7
-      with:
-        submodules: recursive
-    - name: Build assets
-      run: |
-        cmake -S ggml -B ggml/build -DCMAKE_BUILD_TYPE=Release -DLOCALVQE_BUILD_SHARED=ON
-        cmake --build ggml/build
-        cmake --build ggml/build --target regression-assets
-    - name: Upload assets
-      uses: actions/upload-artifact@v7
-      with:
-        name: bench_assets
-        path: ggml/build/bench_assets
-
-  build-plugin:
-    needs: build-assets
     runs-on: windows-2022
     steps:
     - uses: actions/checkout@v7
@@ -41,13 +23,13 @@ jobs:
         repository: obsproject/obs-studio
         path: obs-studio
         ref: "32.1.2"
-    - name: Download bench assets
-      uses: actions/download-artifact@v8
-      with:
-        name: bench_assets
-        path: bench_assets
+    - name: Build assets
+      run: |
+        cmake -S ggml -B ggml/build -DCMAKE_BUILD_TYPE=Release -DLOCALVQE_BUILD_SHARED=ON
+        cmake --build ggml/build
+        cmake --build ggml/build --target regression-assets
     - name: Copy bench asset
-      run: cp bench_assets/localvqe-v1.3-4.8M-f32.gguf obs-plugin/data/localvqe-v1.3-4.8M-f32.gguf
+      run: cp ggml/build/bench_assets/localvqe-v1.3-4.8M-f32.gguf obs-plugin/data/localvqe-v1.3-4.8M-f32.gguf
     - name: Build obs
       run: |
         cd obs-studio
@@ -55,14 +37,9 @@ jobs:
         cmake --preset windows-x64
         cmake --build --preset windows-x64
         cd ..
-    - name: Upload obs
-      uses: actions/upload-artifact@v7
-      with:
-        name: obs-studio
-        path: obs-studio/build_x64
     - name: Build plugin
       run: |
-        cmake -S obs-plugin -B obs-plugin/build -DCMAKE_BUILD_TYPE=Release -Dlibobs_DIR=obs-studio/build_x64/libobs -Dlibobs_INCLUDE_DIR=obs-studio/libobs -Dlibobs_LIB=obs-studio/build_x64/libobs/libobs.dll
+        cmake -S obs-plugin -B obs-plugin/build -DCMAKE_BUILD_TYPE=Release -Dlibobs_DIR=obs-studio/build_x64/libobs
         cmake --build obs-plugin/build
     - name: Upload plugin
       uses: actions/upload-artifact@v7
