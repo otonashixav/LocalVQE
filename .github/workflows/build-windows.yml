@@ -48,8 +48,9 @@ jobs:
       run: cp bench_assets/localvqe-v1.3-4.8M-f32.gguf obs-plugin/data/localvqe-v1.3-4.8M-f32.gguf
     - name: Build obs
       run: |
-        cmake -S obs-studio -B obs-studio/build -DCMAKE_BUILD_TYPE=Release -DENABLE_PLUGINS:BOOL=OFF -DENABLE_FRONTEND:BOOL=OFF
-        cmake --build obs-studio/build
+        cd obs-studio
+        cmake --build --preset windows-x64
+        cd ..
     - name: Build plugin
       run: |
         cmake -S obs-plugin -B obs-plugin/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=obs-studio/build/libobs
