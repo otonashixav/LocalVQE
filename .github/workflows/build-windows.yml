@@ -50,7 +50,7 @@ jobs:
     - name: Build obs
       run: |
         cd obs-studio
-        mkdir build_x64
+        cmake --preset windows-x64
         cmake --build --preset windows-x64
         cd ..
     - name: Build plugin
