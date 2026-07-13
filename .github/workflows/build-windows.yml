@@ -40,6 +40,7 @@ jobs:
         submodules: recursive
         repository: obsproject/obs-studio
         path: obs-studio
+        ref: "32.1.2"
     - name: Download bench assets
       uses: actions/download-artifact@v8
       with:
@@ -50,7 +51,7 @@ jobs:
     - name: Build obs
       run: |
         cd obs-studio
-        cmake --preset windows-x64
+        cmake --preset windows-x64 --fresh
         cmake --build --preset windows-x64
         cd ..
     - name: Build plugin
