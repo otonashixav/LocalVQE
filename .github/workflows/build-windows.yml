@@ -29,7 +29,6 @@ jobs:
         cmake --list-presets
         cmake --preset windows-ci-x64
         cmake --build --preset windows-x64
-        cmake --install build_x64
         cd ..
     - name: Build assets
       run: |
@@ -42,7 +41,7 @@ jobs:
       run: choco install pkgconfiglite
     - name: Build plugin
       run: |
-        cmake -S obs-plugin -B obs-plugin/build -DCMAKE_BUILD_TYPE=Release
+        cmake -S obs-plugin -B obs-plugin/build -DCMAKE_BUILD_TYPE=Release -Dlibobs_ROOT="obs-studio/build_x64/libobs"
         cmake --build obs-plugin/build
     - name: Upload plugin
       uses: actions/upload-artifact@v7
