@@ -54,7 +54,7 @@ jobs:
         cmake --list-presets
         cmake --preset windows-x64
         cmake --build --preset windows-x64
-        cmake --install --preset windows-x64
+        cmake --install
         cd ..
     - name: Build plugin
       run: |
