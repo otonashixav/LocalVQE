@@ -54,7 +54,7 @@ jobs:
         cmake --list-presets
         cmake --preset windows-x64
         cmake --build --preset windows-x64
-        cmake --install build_x64
+        cmake --install build_x64/libobs
         cd ..
     - name: Build plugin
       run: |
