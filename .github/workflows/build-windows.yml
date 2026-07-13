@@ -55,9 +55,14 @@ jobs:
         cmake --preset windows-x64
         cmake --build --preset windows-x64
         cd ..
+    - name: Upload obs
+      uses: actions/upload-artifact@v7
+      with:
+        name: obs-studio
+        path: obs-studio/build_x64
     - name: Build plugin
       run: |
-        cmake -S obs-plugin -B obs-plugin/build -DCMAKE_BUILD_TYPE=Release -Dlibobs_DIR=obs-studio/cmake/libobs
+        cmake -S obs-plugin -B obs-plugin/build -DCMAKE_BUILD_TYPE=Release -Dlibobs_DIR=obs-studio/build_x64/libobs -Dlibobs_INCLUDE_DIR=obs-studio/libobs -Dlibobs_LIB=obs-studio/build_x64/libobs/libobs.dll
         cmake --build obs-plugin/build
     - name: Upload plugin
       uses: actions/upload-artifact@v7
