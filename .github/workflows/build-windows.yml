@@ -31,8 +31,8 @@ jobs:
         cmake --build ggml/build --target regression-assets
     - name: Copy plugin assets
       run: |
-        cp obs-plugin/src obs-plugintemplate/src -Recurse -Force
-        cp obs-plugin/data obs-plugintemplate/data -Recurse -Force
+        cp obs-plugin/src obs-plugintemplate -Recurse -Force
+        cp obs-plugin/data obs-plugintemplate -Recurse -Force
         echo 'find_path(LOCALVQE_INCLUDE_DIR NAMES localvqe_api.h HINTS ${CMAKE_SOURCE_DIR}/../ggml)' >> obs-plugintemplate/CMakeLists.txt
         echo 'find_library(LOCALVQE_LIBRARY NAMES localvqe HINTS ${CMAKE_SOURCE_DIR}/../ggml/build/Debug)' >> obs-plugintemplate/CMakeLists.txt
         echo 'target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${LOCALVQE_INCLUDE_DIR})' >> obs-plugintemplate/CMakeLists.txt
