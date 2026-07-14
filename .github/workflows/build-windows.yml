@@ -52,7 +52,7 @@ jobs:
     - name: Build plugin
       run: |
         $env:PKG_CONFIG_PATH="D:/a/LocalVQE/LocalVQE/obs-deps/windows/obs-dependencies-x64/lib/pkgconfig"
-        cmake -S obs-plugin -B obs-plugin/build -DCMAKE_BUILD_TYPE=Release -Dlibobs_ROOT="obs-studio/build_x64/libobs" -Dw32-pthreads_ROOT="obs-studio/build_x64/deps/w32-pthreads"
+        cmake -S obs-plugin -B obs-plugin/build -DCMAKE_BUILD_TYPE=Release -Dlibobs_ROOT="obs-studio/build_x64/libobs" -Dw32-pthreads_ROOT="obs-studio/build_x64/deps/w32-pthreads" -DSIMDe_ROOT="obs-deps/windows/obs-dependencies-x64"
         cmake --build obs-plugin/build
     - name: Upload plugin
       uses: actions/upload-artifact@v7
