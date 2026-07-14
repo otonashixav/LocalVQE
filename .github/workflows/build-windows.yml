@@ -32,7 +32,7 @@ jobs:
     - name: Build obs-deps
       run: |
         cd obs-deps
-        /Build-Dependencies.ps1
+        powershell -File Build-Dependencies.ps1
         cd ..
     - name: Build obs
       run: |
