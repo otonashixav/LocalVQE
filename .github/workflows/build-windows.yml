@@ -36,7 +36,7 @@ jobs:
       run: cp ggml/build/bench_assets/localvqe-v1.3-4.8M-f32.gguf obs-plugin/data/localvqe-v1.3-4.8M-f32.gguf
     - name: Build plugin
       run: |
-        cmake -S obs-plugin -B obs-plugin/build -DCMAKE_BUILD_TYPE=Release -Dlibobs_ROOT="obs-studio/build_x64/libobs" -DSIMDe_ROOT="obs-studio"
+        cmake -S obs-plugin -B obs-plugin/build -DCMAKE_BUILD_TYPE=Release -Dlibobs_ROOT="obs-studio/build_x64/libobs" -Dw32-pthreads_ROOT="obs-studio/build_x64/deps/w32-pthreads" -DSIMDe_ROOT="obs-studio/.deps/obs-deps-2025-08-23-x64/include/simde" 
         cmake --build obs-plugin/build
     - name: Upload plugin
       uses: actions/upload-artifact@v7
