@@ -40,7 +40,7 @@ jobs:
       run: choco install pkgconfiglite
     - name: Build plugin
       run: |
-        cmake -S obs-plugin -B obs-plugin/build -DCMAKE_BUILD_TYPE=Release -Dlibobs_ROOT="obs-studio/build_x64/libobs" -Dw32-pthreads_DIR="obs-studio/build_x64/deps/w32_pthreads"
+        cmake -S obs-plugin -B obs-plugin/build -DCMAKE_BUILD_TYPE=Release -Dlibobs_ROOT="obs-studio/build_x64/libobs" -Dw32-pthreads_DIR="obs-studio/build_x64/deps/w32-pthreads"
         cmake --build obs-plugin/build
     - name: Upload plugin
       uses: actions/upload-artifact@v7
