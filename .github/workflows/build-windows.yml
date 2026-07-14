@@ -18,6 +18,8 @@ jobs:
         submodules: recursive
     - name: Install obs
       run: choco install obs-studio
+    - name: Install pkgconfig
+      run: choco install pkgconfiglite
     - name: Build assets
       run: |
         cmake -S ggml -B ggml/build -DCMAKE_BUILD_TYPE=Release -DLOCALVQE_BUILD_SHARED=ON
