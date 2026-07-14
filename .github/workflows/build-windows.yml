@@ -23,6 +23,17 @@ jobs:
         repository: obsproject/obs-studio
         path: obs-studio
         ref: "32.1.2"
+    - name: Checkout obs-deps
+      uses: actions/checkout@v7
+      with:
+        submodules: recursive
+        repository: obsproject/obs-deps
+        path: obs-deps
+    - name: Build obs-deps
+      run: |
+        cd obs-deps
+        /Build-Dependencies.ps1
+        cd ..
     - name: Build obs
       run: |
         cd obs-studio
@@ -40,7 +51,7 @@ jobs:
       run: choco install pkgconfiglite
     - name: Build plugin
       run: |
-        cmake -S obs-plugin -B obs-plugin/build -DCMAKE_BUILD_TYPE=Release -Dlibobs_ROOT="obs-studio/build_x64/libobs" -Dw32-pthreads_ROOT="obs-studio/build_x64/deps/w32-pthreads" -DCMAKE_MODULE_PATH="obs-studio/cmake"
+        cmake -S obs-plugin -B obs-plugin/build -DCMAKE_BUILD_TYPE=Release -Dlibobs_ROOT="obs-studio/build_x64/libobs" -Dw32-pthreads_ROOT="obs-studio/build_x64/deps/w32-pthreads" -DCMAKE_PREFIX_PATH="obs-deps"
         cmake --build obs-plugin/build
     - name: Upload plugin
       uses: actions/upload-artifact@v7
