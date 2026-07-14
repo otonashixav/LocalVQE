@@ -31,7 +31,6 @@ jobs:
         cmake --build ggml/build --target regression-assets
     - name: Copy plugin assets
       run: |
-        cp ggml/build/bench_assets/localvqe-v1.3-4.8M-f32.gguf obs-plugintemplate/data/localvqe-v1.3-4.8M-f32.gguf
         cp obs-plugin/src obs-plugintemplate/src -Recurse -Force
         cp obs-plugin/data obs-plugintemplate/data -Recurse -Force
     - name: Build plugin
@@ -40,7 +39,7 @@ jobs:
       uses: actions/upload-artifact@v7
       with:
         name: obs-plugin
-        path: obs-plugin
+        path: obs-plugintemplate/build_x64
 
     
     
