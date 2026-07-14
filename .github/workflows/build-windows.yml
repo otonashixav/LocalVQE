@@ -37,7 +37,7 @@ jobs:
         echo "find_library(LOCALVQE_LIBRARY NAMES localvqe HINTS `${LOCALVQE_ROOT}/lib `${CMAKE_SOURCE_DIR}/../ggml/build/bin)" >> obs-plugintemplate/CMakeLists.txt
         echo "target_include_directories(`${CMAKE_PROJECT_NAME} PRIVATE `${LOCALVQE_INCLUDE_DIR})" >> obs-plugintemplate/CMakeLists.txt
         echo "target_link_libraries(`${CMAKE_PROJECT_NAME} PRIVATE `${LOCALVQE_LIBRARY})" >> obs-plugintemplate/CMakeLists.txt
-        echo 'set_target_properties(`${CMAKE_PROJECT_NAME} PROPERTIES PREFIX "" INSTALL_RPATH "`$ORIGIN")' >> obs-plugintemplate/CMakeLists.txt
+        echo 'set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES PREFIX "" INSTALL_RPATH "$ORIGIN")' >> obs-plugintemplate/CMakeLists.txt
     - name: Build plugin
       run: pwsh -File obs-plugintemplate/.github/scripts/Build-Windows.ps1
     - name: Upload plugin
