@@ -45,8 +45,8 @@ jobs:
     - name: Upload plugin
       uses: actions/upload-artifact@v7
       with:
-        name: obs-plugin
-        path: obs-plugin/build
+        name: obs-studio
+        path: obs-studio/build
 
     
     
