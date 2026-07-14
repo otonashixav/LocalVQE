@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-assets:
+  build:
     runs-on: windows-2022
     steps:
     - uses: actions/checkout@v7
@@ -29,10 +29,10 @@ jobs:
         cmake -S ggml -B ggml/build -DCMAKE_BUILD_TYPE=Release -DLOCALVQE_BUILD_SHARED=ON
         cmake --build ggml/build
         cmake --build ggml/build --target regression-assets
-    - name: Copy plugun assets
+    - name: Copy plugin assets
       run: |
         cp ggml/build/bench_assets/localvqe-v1.3-4.8M-f32.gguf obs-plugintemplate/data/localvqe-v1.3-4.8M-f32.gguf
-        cp obs-plugin/* obs-plugintemplate
+        cp obs-plugin/* obs-plugintemplate -Recurse -Force
     - name: Build plugin
       run: pwsh -File obs-plugintemplate/.github/scripts/Build-Windows.ps1
     - name: Upload plugin
