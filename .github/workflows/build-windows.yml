@@ -16,30 +16,8 @@ jobs:
     - uses: actions/checkout@v7
       with:
         submodules: recursive
-    - name: Checkout obs
-      uses: actions/checkout@v7
-      with:
-        submodules: recursive
-        repository: obsproject/obs-studio
-        path: obs-studio
-        ref: "32.1.2"
-    - name: Checkout obs-deps
-      uses: actions/checkout@v7
-      with:
-        submodules: recursive
-        repository: obsproject/obs-deps
-        path: obs-deps
-    - name: Build obs-deps
-      run: |
-        cd obs-deps
-        pwsh -File Build-Dependencies.ps1
-        cd ..
-    - name: Build obs
-      run: |
-        cd obs-studio
-        cmake --preset windows-ci-x64
-        cmake --build --preset windows-x64
-        cd ..
+    - name: Install obs
+      run: choco install obs-studio
     - name: Build assets
       run: |
         cmake -S ggml -B ggml/build -DCMAKE_BUILD_TYPE=Release -DLOCALVQE_BUILD_SHARED=ON
@@ -47,18 +25,15 @@ jobs:
         cmake --build ggml/build --target regression-assets
     - name: Copy bench asset
       run: cp ggml/build/bench_assets/localvqe-v1.3-4.8M-f32.gguf obs-plugin/data/localvqe-v1.3-4.8M-f32.gguf
-    - name: Get pkgconfig
-      run: choco install pkgconfiglite
     - name: Build plugin
       run: |
-        $env:PKG_CONFIG_PATH="D:/a/LocalVQE/LocalVQE/obs-deps/windows/obs-dependencies-x64/lib/pkgconfig"
-        cmake -S obs-plugin -B obs-plugin/build -DCMAKE_BUILD_TYPE=Release -Dlibobs_ROOT="obs-studio/build_x64/libobs" -Dw32-pthreads_ROOT="obs-studio/build_x64/deps/w32-pthreads" -DSIMDe_ROOT="obs-deps/windows/obs-dependencies-x64"
+        cmake -S obs-plugin -B obs-plugin/build -DCMAKE_BUILD_TYPE=Releas
         cmake --build obs-plugin/build
     - name: Upload plugin
       uses: actions/upload-artifact@v7
       with:
         name: obs-plugin
-        path: obs-studio
+        path: obs-plugin
 
     
     
