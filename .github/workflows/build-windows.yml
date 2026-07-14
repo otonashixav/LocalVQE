@@ -41,7 +41,7 @@ jobs:
     - name: Build plugin
       run: |
         cmake -S obs-plugin -B obs-plugin/build -DCMAKE_BUILD_TYPE=Release -Dlibobs_ROOT="obs-studio/build_x64/libobs" -Dw32-pthreads_ROOT="obs-studio/build_x64/deps/w32-pthreads" -DCMAKE_MODULE_PATH="obs-studio/cmake/finders"
-        cmake --build obs-plugin/build
+        cmake --build obs-plugin/build -Dlibobs_ROOT="obs-studio/build_x64/libobs" -Dw32-pthreads_ROOT="obs-studio/build_x64/deps/w32-pthreads" -DCMAKE_MODULE_PATH="obs-studio/cmake/finders"
     - name: Upload plugin
       uses: actions/upload-artifact@v7
       with:
