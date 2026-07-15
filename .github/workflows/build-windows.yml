@@ -33,6 +33,7 @@ jobs:
     #     cmake --build ggml/build
     - name: Copy plugin assets
       run: |
+        rm ggml/tests/*.cpp
         cp obs-plugin/src obs-plugintemplate -Recurse -Force
         cp obs-plugin/data obs-plugintemplate -Recurse -Force
         (Get-Content obs-plugintemplate/CMakeLists.txt).Replace('src/plugin-main.c', 'src/plugin-main.c src/localvqe-filter.c ../ggml/localvqe_api.cpp') | Set-Content obs-plugintemplate/CMakeLists.txt
