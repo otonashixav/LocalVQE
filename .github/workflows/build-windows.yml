@@ -31,6 +31,7 @@ jobs:
         cmake --build ggml/build --target regression-assets
     - name: Copy plugin assets
       run: |
+        cp ggml/build/bench_assets/localvqe-v1.3-4.8M-f32.gguf obs-plugin/data/
         cp obs-plugin/src obs-plugintemplate -Recurse -Force
         cp obs-plugin/data obs-plugintemplate -Recurse -Force
         (Get-Content obs-plugintemplate/CMakeLists.txt).Replace('src/plugin-main.c', 'src/plugin-main.c src/localvqe-filter.c') | Set-Content obs-plugintemplate/CMakeLists.txt
@@ -41,7 +42,7 @@ jobs:
         echo 'find_library(LOCALVQE_LIBRARY NAMES localvqe HINTS ${CMAKE_SOURCE_DIR}/../ggml/build/Debug)' >> obs-plugintemplate/CMakeLists.txt
         echo 'target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${LOCALVQE_INCLUDE_DIR})' >> obs-plugintemplate/CMakeLists.txt
         echo 'target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE ${LOCALVQE_LIBRARY})' >> obs-plugintemplate/CMakeLists.txt
-        echo 'set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "out")' >> obs-plugintemplate/CMakeLists.txt
+        echo 'set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/out")' >> obs-plugintemplate/CMakeLists.txt
     - name: Build plugin
       run: pwsh -File obs-plugintemplate/.github/scripts/Build-Windows.ps1
     - name: Upload plugin
