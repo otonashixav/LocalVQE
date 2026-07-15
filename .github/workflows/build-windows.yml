@@ -27,8 +27,7 @@ jobs:
     - name: Build assets
       run: |
         rm ggml/tests/*.cpp
-        cmake -S ggml -B ggml/build -DCMAKE_BUILD_TYPE=Release
-        (Get-Content ggml/CMakeLists.txt).Replace('x86_64|AMD64|amd64', 'XXXXXXXXXXXXX') | Set-Content ggml/CMakeLists.txt
+        cmake -S ggml -B ggml/build -DCMAKE_BUILD_TYPE=Release -DLOCALVQE_BUILD_SHARED=ON
         cmake --build ggml/build
     - name: Copy plugin assets
       run: |
@@ -39,10 +38,7 @@ jobs:
         (Get-Content obs-plugintemplate/buildspec.json).Replace('plugintemplate-for-obs', 'obs-localvqe') | Set-Content obs-plugintemplate/buildspec.json
         (Get-Content obs-plugintemplate/buildspec.json).Replace('Plugin Template for OBS', 'Local Voice Quality Enhancement') | Set-Content obs-plugintemplate/buildspec.json
         echo 'find_path(LOCALVQE_INCLUDE_DIR NAMES localvqe_api.h HINTS ${CMAKE_SOURCE_DIR}/../ggml)' >> obs-plugintemplate/CMakeLists.txt
-        echo 'set(CMAKE_FIND_LIBRARY_SUFFIXES_BACKUP ${CMAKE_FIND_LIBRARY_SUFFIXES})' >> obs-plugintemplate/CMakeLists.txt
-        echo 'set(CMAKE_FIND_LIBRARY_SUFFIXES ".lib") ' >> obs-plugintemplate/CMakeLists.txt
-        echo 'find_library(LOCALVQE_LIBRARY NAMES localvqe HINTS ${CMAKE_SOURCE_DIR}/../ggml/build/Debug)' >> obs-plugintemplate/CMakeLists.txt
-        echo 'set(CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_FIND_LIBRARY_SUFFIXES_BACKUP})' >> obs-plugintemplate/CMakeLists.txt
+        echo 'find_library(LOCALVQE_LIBRARY NAMES localvqe HINTS ${CMAKE_SOURCE_DIR}/../ggml/build/bin/Debug)' >> obs-plugintemplate/CMakeLists.txt
         echo 'target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${LOCALVQE_INCLUDE_DIR})' >> obs-plugintemplate/CMakeLists.txt
         echo 'add_library(LOCALVQE_LIBRARY STATIC IMPORTED)' >> obs-plugintemplate/CMakeLists.txt
     - name: Build plugin
