@@ -41,7 +41,11 @@ jobs:
         (Get-Content obs-plugintemplate/buildspec.json).Replace('Plugin Template for OBS', 'Local Voice Quality Enhancement') | Set-Content obs-plugintemplate/buildspec.json
         echo 'find_path(LOCALVQE_INCLUDE_DIR NAMES localvqe_api.h HINTS ${CMAKE_SOURCE_DIR}/../ggml)' >> obs-plugintemplate/CMakeLists.txt
         echo 'target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${LOCALVQE_INCLUDE_DIR})' >> obs-plugintemplate/CMakeLists.txt
+        echo 'set(CMAKE_CURRENT_SOURCE_DIR_BACKUP ${CMAKE_CURRENT_SOURCE_DIR})'
+        echo 'set(CMAKE_CURRENT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../ggml)'
         echo 'include(../ggml/CMakeLists.txt)' >> obs-plugintemplate/CMakeLists.txt
+        echo 'set(CMAKE_CURRENT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})'
+        
       # echo 'add_subdirectory(../ggml/vendor/ggml ggml_build)' >> obs-plugintemplate/CMakeLists.txt
       # echo 'add_library(dvqe_common STATIC ../ggml/common.cpp)' >> obs-plugintemplate/CMakeLists.txt
       # echo 'target_include_directories(dvqe_common PUBLIC ../ggml)' >> obs-plugintemplate/CMakeLists.txt
