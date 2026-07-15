@@ -43,6 +43,8 @@ jobs:
         echo 'add_subdirectory(../ggml ggml_build)' >> obs-plugintemplate/CMakeLists.txt
         echo 'find_path(LOCALVQE_INCLUDE_DIR NAMES localvqe_api.h HINTS ${CMAKE_SOURCE_DIR}/../ggml)' >> obs-plugintemplate/CMakeLists.txt
         echo 'target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${LOCALVQE_INCLUDE_DIR})' >> obs-plugintemplate/CMakeLists.txt
+        echo 'set(CMAKE_GENERATOR_PLATFORM "")' >> obs-plugintemplate/CMakeLists.txt
+        
       # (Get-Content ggml/CMakeLists.txt).Replace('${CMAKE_CURRENT_SOURCE_DIR}', '${CMAKE_CURRENT_SOURCE_DIR}/../ggml') | Set-Content ggml/CMakeLists.txt
       # (Get-Content ggml/CMakeLists.txt).Replace('add_subdirectory(vendor/ggml)', 'add_subdirectory(../ggml/vendor/ggml ggml_build)') | Set-Content ggml/CMakeLists.txt
         
