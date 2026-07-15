@@ -26,7 +26,7 @@ jobs:
       run: choco install pkgconfiglite
     - name: Build assets
       run: |
-        rm ggml/tests/test/*.cpp
+        rm ggml/tests/*.cpp
         cmake -S ggml -B ggml/build -DCMAKE_BUILD_TYPE=Release -DLOCALVQE_BUILD_SHARED=ON
         (Get-Content ggml/CMakeLists.txt).Replace(' SHARED ', ' STATIC ') | Set-Content ggml/CMakeLists.txt
         cmake --build ggml/build
