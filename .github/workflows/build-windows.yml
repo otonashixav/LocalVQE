@@ -39,6 +39,7 @@ jobs:
         (Get-Content obs-plugintemplate/CMakePresets.json).Replace('"CMAKE_COMPILE_WARNING_AS_ERROR": true', '"CMAKE_COMPILE_WARNING_AS_ERROR": false') | Set-Content obs-plugintemplate/CMakePresets.json
         (Get-Content obs-plugintemplate/buildspec.json).Replace('plugintemplate-for-obs', 'obs-localvqe') | Set-Content obs-plugintemplate/buildspec.json
         (Get-Content obs-plugintemplate/buildspec.json).Replace('Plugin Template for OBS', 'Local Voice Quality Enhancement') | Set-Content obs-plugintemplate/buildspec.json
+        echo 'set(GGML_SYSTEM_ARCH x86)' >> obs-plugintemplate/CMakeLists.txt
         echo 'add_subdirectory(../ggml ggml_build)' >> obs-plugintemplate/CMakeLists.txt
         echo 'find_path(LOCALVQE_INCLUDE_DIR NAMES localvqe_api.h HINTS ${CMAKE_SOURCE_DIR}/../ggml)' >> obs-plugintemplate/CMakeLists.txt
         echo 'target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${LOCALVQE_INCLUDE_DIR})' >> obs-plugintemplate/CMakeLists.txt
