@@ -28,8 +28,6 @@ jobs:
       run: |
         rm ggml/tests/*.cpp
         cmake -S ggml -B ggml/build -DCMAKE_BUILD_TYPE=Release -DLOCALVQE_BUILD_SHARED=ON
-        (Get-Content ggml/CMakeLists.txt).Replace(' SHARED ', ' STATIC ') | Set-Content ggml/CMakeLists.txt
-        (Get-Content ggml/CMakeLists.txt).Replace('x86_64|AMD64|amd64', 'XXXXXXXXXXXXX') | Set-Content ggml/CMakeLists.txt
         cmake --build ggml/build
     - name: Copy plugin assets
       run: |
