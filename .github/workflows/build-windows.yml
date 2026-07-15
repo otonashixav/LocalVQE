@@ -35,7 +35,7 @@ jobs:
       run: |
         cp obs-plugin/src obs-plugintemplate -Recurse -Force
         cp obs-plugin/data obs-plugintemplate -Recurse -Force
-        (Get-Content obs-plugintemplate/CMakeLists.txt).Replace('src/plugin-main.c', 'src/plugin-main.c src/localvqe-filter.c ../ggml/localvqe-api.cpp') | Set-Content obs-plugintemplate/CMakeLists.txt
+        (Get-Content obs-plugintemplate/CMakeLists.txt).Replace('src/plugin-main.c', 'src/plugin-main.c src/localvqe-filter.c ../ggml/localvqe_api.cpp') | Set-Content obs-plugintemplate/CMakeLists.txt
         (Get-Content obs-plugintemplate/CMakePresets.json).Replace('"CMAKE_COMPILE_WARNING_AS_ERROR": true', '"CMAKE_COMPILE_WARNING_AS_ERROR": false') | Set-Content obs-plugintemplate/CMakePresets.json
         (Get-Content obs-plugintemplate/buildspec.json).Replace('plugintemplate-for-obs', 'obs-localvqe') | Set-Content obs-plugintemplate/buildspec.json
         (Get-Content obs-plugintemplate/buildspec.json).Replace('Plugin Template for OBS', 'Local Voice Quality Enhancement') | Set-Content obs-plugintemplate/buildspec.json
