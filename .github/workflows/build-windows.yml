@@ -40,7 +40,6 @@ jobs:
         (Get-Content obs-plugintemplate/buildspec.json).Replace('plugintemplate-for-obs', 'obs-localvqe') | Set-Content obs-plugintemplate/buildspec.json
         (Get-Content obs-plugintemplate/buildspec.json).Replace('Plugin Template for OBS', 'Local Voice Quality Enhancement') | Set-Content obs-plugintemplate/buildspec.json
         echo 'find_path(LOCALVQE_INCLUDE_DIR NAMES localvqe_api.h HINTS ${CMAKE_SOURCE_DIR}/../ggml)' >> obs-plugintemplate/CMakeLists.txt
-        echo
         echo 'set(CMAKE_FIND_LIBRARY_SUFFIXES_BACKUP ${CMAKE_FIND_LIBRARY_SUFFIXES})' >> obs-plugintemplate/CMakeLists.txt
         echo 'set(CMAKE_FIND_LIBRARY_SUFFIXES ".lib") ' >> obs-plugintemplate/CMakeLists.txt
         echo 'find_library(LOCALVQE_LIBRARY NAMES localvqe HINTS ${CMAKE_SOURCE_DIR}/../ggml/build/Debug)' >> obs-plugintemplate/CMakeLists.txt
