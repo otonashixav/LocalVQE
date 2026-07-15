@@ -40,7 +40,8 @@ jobs:
         (Get-Content obs-plugintemplate/buildspec.json).Replace('plugintemplate-for-obs', 'obs-localvqe') | Set-Content obs-plugintemplate/buildspec.json
         (Get-Content obs-plugintemplate/buildspec.json).Replace('Plugin Template for OBS', 'Local Voice Quality Enhancement') | Set-Content obs-plugintemplate/buildspec.json
         (Get-Content ggml/vendor/ggml/cmake/common.cmake).Replace('^(x86_64|i686|amd64|x64|win32)$', '^(x86_64|i686|amd64|x64|win32)') | Set-Content ggml/vendor/ggml/cmake/common.cmake
-        (Get-Content ggml/localvqe_api.h).Replace('_WIN32', 'XXXXXXXXXXXXXXXXXX') | Set-Content ggml/localvqe_api.h
+        (Get-Content ggml/localvqe_api.h).Replace('__declspec(dllexport)', '') | Set-Content ggml/localvqe_api.h
+        (Get-Content ggml/localvqe_api.h).Replace('__declspec(dllimport)', '') | Set-Content ggml/localvqe_api.h
         echo 'add_subdirectory(../ggml ggml_build)' >> obs-plugintemplate/CMakeLists.txt
         echo 'find_path(LOCALVQE_INCLUDE_DIR NAMES localvqe_api.h HINTS ${CMAKE_SOURCE_DIR}/../ggml)' >> obs-plugintemplate/CMakeLists.txt
         echo 'target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${LOCALVQE_INCLUDE_DIR})' >> obs-plugintemplate/CMakeLists.txt
