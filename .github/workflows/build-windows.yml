@@ -33,7 +33,6 @@ jobs:
         cmake --build ggml/build --target regression-assets
     - name: Copy plugin assets
       run: |
-        cp ggml/build/bench_assets/localvqe-v1.3-4.8M-f32.gguf obs-plugin/data/
         cp obs-plugin/src obs-plugintemplate -Recurse -Force
         cp obs-plugin/data obs-plugintemplate -Recurse -Force
         (Get-Content obs-plugintemplate/CMakeLists.txt).Replace('src/plugin-main.c', 'src/plugin-main.c src/localvqe-filter.c') | Set-Content obs-plugintemplate/CMakeLists.txt
