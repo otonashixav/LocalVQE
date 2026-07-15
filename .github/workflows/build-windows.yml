@@ -30,7 +30,6 @@ jobs:
         cmake -S ggml -B ggml/build -DCMAKE_BUILD_TYPE=Release -DLOCALVQE_BUILD_SHARED=ON
         (Get-Content ggml/CMakeLists.txt).Replace(' SHARED ', ' STATIC ') | Set-Content ggml/CMakeLists.txt
         cmake --build ggml/build
-        cmake --build ggml/build --target regression-assets
     - name: Copy plugin assets
       run: |
         cp obs-plugin/src obs-plugintemplate -Recurse -Force
